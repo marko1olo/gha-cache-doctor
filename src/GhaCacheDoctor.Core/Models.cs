@@ -50,6 +50,24 @@ public sealed record RepositoryContext(
     IReadOnlyList<string> SolutionFiles,
     IReadOnlyList<string> Dockerfiles)
 {
+    public IReadOnlyList<string> GlobalJsonFiles =>
+        Files.Where(path => Path.GetFileName(path).Equals("global.json", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+    public IReadOnlyList<string> PythonProjectFiles =>
+        Files.Where(path => Path.GetFileName(path).Equals("pyproject.toml", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+    public IReadOnlyList<string> GradleFiles =>
+        Files.Where(path =>
+            Path.GetFileName(path).Equals("build.gradle", StringComparison.OrdinalIgnoreCase) ||
+            Path.GetFileName(path).Equals("build.gradle.kts", StringComparison.OrdinalIgnoreCase) ||
+            Path.GetFileName(path).Equals("gradlew", StringComparison.OrdinalIgnoreCase) ||
+            Path.GetFileName(path).Equals("gradle.lockfile", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+    public IReadOnlyList<string> ComposeFiles =>
+        Files.Where(path =>
+            Path.GetFileName(path).Equals("docker-compose.yml", StringComparison.OrdinalIgnoreCase) ||
+            Path.GetFileName(path).Equals("compose.yml", StringComparison.OrdinalIgnoreCase)).ToArray();
+
     public bool HasNodeHints => PackageJsonFiles.Count > 0 || LockFiles.Any(IsNodeLockFile);
 
     public bool LooksLikeNodeMonorepo =>

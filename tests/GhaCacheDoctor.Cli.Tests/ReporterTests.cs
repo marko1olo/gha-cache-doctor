@@ -35,6 +35,7 @@ public sealed class ReporterTests
         var output = new TextReporter().Render(result);
 
         Assert.Contains("[info] GHA-CACHE001 setup-node-cache-missing", output);
+        Assert.Contains(".github/workflows/ci.yml", output);
         Assert.Contains("Job: test", output);
         Assert.Contains("Step: Setup Node", output);
         Assert.Contains("Line: 14", output);
@@ -77,6 +78,11 @@ public sealed class ReporterTests
 
         Assert.Equal("GHA-CACHE003", finding.GetProperty("ruleId").GetString());
         Assert.Equal("warning", finding.GetProperty("severity").GetString());
+        Assert.Equal("correctness", finding.GetProperty("category").GetString());
+        Assert.Equal(".github/workflows/ci.yml", finding.GetProperty("filePath").GetString());
+        Assert.Equal(8, finding.GetProperty("line").GetInt32());
+        Assert.Equal("Weak cache key.", finding.GetProperty("message").GetString());
+        Assert.Equal("Use hashFiles.", finding.GetProperty("recommendation").GetString());
         Assert.Equal("Cache npm", finding.GetProperty("stepName").GetString());
         Assert.True(document.RootElement.TryGetProperty("parseErrors", out _));
     }

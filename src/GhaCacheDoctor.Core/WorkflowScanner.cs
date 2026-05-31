@@ -40,7 +40,7 @@ public sealed class WorkflowScanner
 
             foreach (var rule in selectedRules)
             {
-                findings.AddRange(rule.Analyze(parseResult.Workflow, repository));
+                findings.AddRange(rule.Analyze(parseResult.Workflow, repository, options.Strict));
             }
         }
 

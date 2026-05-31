@@ -34,7 +34,7 @@ info
 
 ## Strict mode
 
-No additional behavior in the MVP.
+Strict mode also reports additional package-manager-only restore key prefixes such as `pnpm-`, `yarn-`, `nuget-`, `pip-`, and `gradle-`.
 
 ## False positive notes
 

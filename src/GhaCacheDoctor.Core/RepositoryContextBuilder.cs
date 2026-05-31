@@ -48,6 +48,7 @@ public sealed class RepositoryContextBuilder
             fileName.Equals("pnpm-lock.yaml", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("packages.lock.json", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("requirements.txt", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Equals("pyproject.toml", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("poetry.lock", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("Pipfile.lock", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("gradle.lockfile", StringComparison.OrdinalIgnoreCase);

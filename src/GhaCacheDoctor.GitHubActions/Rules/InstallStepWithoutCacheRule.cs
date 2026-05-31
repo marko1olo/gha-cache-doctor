@@ -9,18 +9,18 @@ public sealed class InstallStepWithoutCacheRule : IRule
     public Severity DefaultSeverity => Severity.Info;
     public string Category => "performance";
 
-    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository)
+    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository, bool strictMode = false)
     {
         var findings = new List<Finding>();
         foreach (var job in workflow.Jobs)
         {
-            if (!RuleHelpers.HasAnyInstall(job) || RuleHelpers.HasRelevantCache(job))
+            var installStep = job.Steps.FirstOrDefault(step => IsInstallStep(step, repository, strictMode));
+            if (installStep is null || RuleHelpers.HasRelevantCache(job))
             {
                 continue;
             }
 
-            var installStep = job.Steps.FirstOrDefault(step => RuleHelpers.ContainsAny(step.Run, ["npm ci", "npm install", "yarn install", "pnpm install", "pnpm i", "dotnet restore", "pip install", "poetry install", "gradle build", "./gradlew build"]));
-            if (installStep?.Run?.Contains("--no-cache", StringComparison.OrdinalIgnoreCase) == true)
+            if (installStep.Run?.Contains("--no-cache", StringComparison.OrdinalIgnoreCase) == true)
             {
                 continue;
             }
@@ -38,5 +38,22 @@ public sealed class InstallStepWithoutCacheRule : IRule
         }
 
         return findings;
+    }
+
+    private static bool IsInstallStep(WorkflowStep step, RepositoryContext repository, bool strictMode)
+    {
+        if (RuleHelpers.ContainsAny(step.Run, ["npm ci", "yarn install", "pnpm install", "dotnet restore", "poetry install", "gradle build", "./gradlew build"]))
+        {
+            return true;
+        }
+
+        if (!strictMode)
+        {
+            return false;
+        }
+
+        return RuleHelpers.ContainsAny(step.Run, ["npm install", "pnpm i"]) && repository.HasNodeHints ||
+            RuleHelpers.ContainsAny(step.Run, ["dotnet build", "dotnet test"]) && (repository.CsprojFiles.Count > 0 || repository.SolutionFiles.Count > 0) ||
+            RuleHelpers.ContainsAny(step.Run, ["pip install"]) && (repository.LockFiles.Any(path => Path.GetFileName(path).Equals("requirements.txt", StringComparison.OrdinalIgnoreCase)) || repository.PythonProjectFiles.Count > 0);
     }
 }

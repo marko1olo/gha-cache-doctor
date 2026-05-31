@@ -7,7 +7,7 @@ public interface IRule
     Severity DefaultSeverity { get; }
     string Category { get; }
 
-    IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository);
+    IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository, bool strictMode = false);
 }
 
 public interface IWorkflowParser

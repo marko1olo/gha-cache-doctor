@@ -48,7 +48,50 @@ public sealed class CliApplicationTests
         var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path, "--format", "json"]);
 
         Assert.Equal(0, exitCode);
-        Assert.Contains("\"ruleId\": \"GHA-CACHE003\"", output.ToString());
+        using var document = System.Text.Json.JsonDocument.Parse(output.ToString());
+        Assert.Equal("GHA-CACHE003", document.RootElement.GetProperty("findings")[0].GetProperty("ruleId").GetString());
+    }
+
+    [Fact]
+    public void ScanReturnsOneWhenFailOnWarningMatchesWarningFinding()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+
+        var exitCode = new CliApplication(new StringWriter(), new StringWriter()).Run(["scan", "--repo", directory.Path, "--fail-on", "warning"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
+    public void ScanAcceptsFailOnNone()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+
+        var exitCode = new CliApplication(new StringWriter(), new StringWriter()).Run(["scan", "--repo", directory.Path, "--fail-on", "none"]);
+
+        Assert.Equal(0, exitCode);
     }
 
     [Fact]

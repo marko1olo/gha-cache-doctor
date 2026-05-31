@@ -86,7 +86,7 @@ public sealed class CliApplication
           --repo <path>             Repository root. Defaults to current directory.
           --path <path>             Workflow file or directory. Defaults to .github/workflows.
           --format <text|json>      Output format. Defaults to text.
-          --fail-on <info|warning|error>
+          --fail-on <none|info|warning|error>
           --include <ids>           Comma-separated rule IDs to include.
           --exclude <ids>           Comma-separated rule IDs to exclude.
           --strict                  Reserved for stricter future rules.
@@ -139,9 +139,20 @@ internal static class ScanArguments
 
                     break;
                 case "--fail-on":
-                    if (!TryReadValue(args, ref index, out var failValue) || !Enum.TryParse(failValue, true, out Severity parsedFailOn))
+                    if (!TryReadValue(args, ref index, out var failValue))
                     {
-                        return Error("--fail-on must be info, warning, or error.");
+                        return Error("--fail-on must be none, info, warning, or error.");
+                    }
+
+                    if (failValue.Equals("none", StringComparison.OrdinalIgnoreCase))
+                    {
+                        failOn = null;
+                        break;
+                    }
+
+                    if (!Enum.TryParse(failValue, true, out Severity parsedFailOn))
+                    {
+                        return Error("--fail-on must be none, info, warning, or error.");
                     }
 
                     failOn = parsedFailOn;

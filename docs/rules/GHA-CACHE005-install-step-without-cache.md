@@ -35,7 +35,7 @@ info
 
 ## Strict mode
 
-No additional behavior in the MVP.
+Strict mode also reports likely dependency install commands such as `npm install`, `pnpm i`, `dotnet build`, `dotnet test`, and `pip install` when repository context suggests the related ecosystem is present.
 
 ## False positive notes
 

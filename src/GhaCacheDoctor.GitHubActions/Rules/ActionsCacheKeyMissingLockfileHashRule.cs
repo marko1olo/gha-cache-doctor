@@ -9,7 +9,7 @@ public sealed class ActionsCacheKeyMissingLockfileHashRule : IRule
     public Severity DefaultSeverity => Severity.Warning;
     public string Category => "correctness";
 
-    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository)
+    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository, bool strictMode = false)
     {
         var findings = new List<Finding>();
         foreach (var job in workflow.Jobs)

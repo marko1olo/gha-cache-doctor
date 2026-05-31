@@ -7,9 +7,9 @@ public sealed class RestoreKeysTooBroadRule : IRule
     public string Id => "GHA-CACHE004";
     public string Title => "restore-keys-too-broad";
     public Severity DefaultSeverity => Severity.Info;
-    public string Category => "correctness";
+    public string Category => "maintainability";
 
-    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository)
+    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository, bool strictMode = false)
     {
         var findings = new List<Finding>();
         foreach (var job in workflow.Jobs)
@@ -17,7 +17,7 @@ public sealed class RestoreKeysTooBroadRule : IRule
             foreach (var step in job.Steps.Where(step => RuleHelpers.IsAction(step, "actions/cache")))
             {
                 var restoreKeys = RuleHelpers.GetWith(step, "restore-keys");
-                if (string.IsNullOrWhiteSpace(restoreKeys) || !IsBroad(restoreKeys))
+                if (string.IsNullOrWhiteSpace(restoreKeys) || !IsBroad(restoreKeys, strictMode))
                 {
                     continue;
                 }
@@ -38,7 +38,7 @@ public sealed class RestoreKeysTooBroadRule : IRule
         return findings;
     }
 
-    private static bool IsBroad(string restoreKeys)
+    private static bool IsBroad(string restoreKeys, bool strictMode)
     {
         var lines = restoreKeys.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return lines.Any(line =>
@@ -46,6 +46,11 @@ public sealed class RestoreKeysTooBroadRule : IRule
             line.Equals("npm-", StringComparison.OrdinalIgnoreCase) ||
             line.Equals("node-", StringComparison.OrdinalIgnoreCase) ||
             line.Equals("cache-", StringComparison.OrdinalIgnoreCase) ||
-            (!line.Contains("${{", StringComparison.Ordinal) && line.Count(character => character == '-') <= 1));
+            (strictMode && (line.Equals("yarn-", StringComparison.OrdinalIgnoreCase) ||
+                line.Equals("pnpm-", StringComparison.OrdinalIgnoreCase) ||
+                line.Equals("nuget-", StringComparison.OrdinalIgnoreCase) ||
+                line.Equals("pip-", StringComparison.OrdinalIgnoreCase) ||
+                line.Equals("gradle-", StringComparison.OrdinalIgnoreCase))) ||
+            (strictMode && !line.Contains("${{", StringComparison.Ordinal) && line.Count(character => character == '-') <= 1));
     }
 }

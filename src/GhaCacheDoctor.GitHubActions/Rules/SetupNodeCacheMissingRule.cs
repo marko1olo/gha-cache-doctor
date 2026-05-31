@@ -9,7 +9,7 @@ public sealed class SetupNodeCacheMissingRule : IRule
     public Severity DefaultSeverity => Severity.Info;
     public string Category => "performance";
 
-    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository)
+    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository, bool strictMode = false)
     {
         var findings = new List<Finding>();
         foreach (var job in workflow.Jobs)

@@ -7,9 +7,9 @@ public sealed class SetupNodeCacheDependencyPathMissingRule : IRule
     public string Id => "GHA-CACHE002";
     public string Title => "setup-node-cache-dependency-path-missing";
     public Severity DefaultSeverity => Severity.Warning;
-    public string Category => "correctness";
+    public string Category => "performance";
 
-    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository)
+    public IReadOnlyList<Finding> Analyze(WorkflowDocument workflow, RepositoryContext repository, bool strictMode = false)
     {
         if (!repository.LooksLikeNodeMonorepo)
         {

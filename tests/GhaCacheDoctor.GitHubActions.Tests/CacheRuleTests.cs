@@ -97,6 +97,21 @@ public sealed class CacheRuleTests
     }
 
     [Fact]
+    public void RestoreKeysTooBroadReportsRunnerOsPrefix()
+    {
+        var workflow = Workflow([
+            new("Cache npm", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["restore-keys"] = "${{ runner.os }}-"
+            }, 5)
+        ]);
+
+        var finding = Assert.Single(new RestoreKeysTooBroadRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE004", finding.RuleId);
+    }
+
+    [Fact]
     public void RestoreKeysTooBroadAllowsContextualPrefix()
     {
         var workflow = Workflow([
@@ -114,6 +129,39 @@ public sealed class CacheRuleTests
     }
 
     [Fact]
+    public void RestoreKeysTooBroadHandlesMissingRestoreKeys()
+    {
+        var workflow = Workflow([
+            new("Cache npm", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = "~/.npm",
+                ["key"] = "npm-cache"
+            }, 5)
+        ]);
+
+        var findings = new RestoreKeysTooBroadRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void RestoreKeysTooBroadReportsAdditionalPatternsInStrictMode()
+    {
+        var workflow = Workflow([
+            new("Cache pnpm", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["restore-keys"] = "pnpm-"
+            }, 5)
+        ]);
+
+        var normalFindings = new RestoreKeysTooBroadRule().Analyze(workflow, Repository());
+        var strictFinding = Assert.Single(new RestoreKeysTooBroadRule().Analyze(workflow, Repository(), strictMode: true));
+
+        Assert.Empty(normalFindings);
+        Assert.Equal("GHA-CACHE004", strictFinding.RuleId);
+    }
+
+    [Fact]
     public void InstallStepWithoutCacheReportsDependencyInstall()
     {
         var workflow = Workflow([
@@ -124,6 +172,31 @@ public sealed class CacheRuleTests
 
         Assert.Equal("GHA-CACHE005", finding.RuleId);
         Assert.Equal("test", finding.JobId);
+    }
+
+    [Fact]
+    public void InstallStepWithoutCacheReportsNpmCiWithoutCache()
+    {
+        var workflow = Workflow([
+            new("Install", null, "npm ci", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new InstallStepWithoutCacheRule().Analyze(workflow, Repository(lockFiles: ["package-lock.json"])));
+
+        Assert.Equal("GHA-CACHE005", finding.RuleId);
+    }
+
+    [Fact]
+    public void InstallStepWithoutCacheAllowsSetupNodeCache()
+    {
+        var workflow = Workflow([
+            new("Setup Node", "actions/setup-node@v4", null, new Dictionary<string, string> { ["cache"] = "npm" }, 5),
+            new("Install", null, "npm ci", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new InstallStepWithoutCacheRule().Analyze(workflow, Repository(lockFiles: ["package-lock.json"]));
+
+        Assert.Empty(findings);
     }
 
     [Fact]
@@ -144,6 +217,21 @@ public sealed class CacheRuleTests
     }
 
     [Fact]
+    public void InstallStepWithoutCacheStrictModeReportsLikelyNpmInstall()
+    {
+        var workflow = Workflow([
+            new("Install", null, "npm install", new Dictionary<string, string>(), 12)
+        ]);
+        var repository = Repository(lockFiles: ["package-lock.json"], packageJsonFiles: ["package.json"]);
+
+        var normalFindings = new InstallStepWithoutCacheRule().Analyze(workflow, repository);
+        var strictFinding = Assert.Single(new InstallStepWithoutCacheRule().Analyze(workflow, repository, strictMode: true));
+
+        Assert.Empty(normalFindings);
+        Assert.Equal("GHA-CACHE005", strictFinding.RuleId);
+    }
+
+    [Fact]
     public void InstallStepWithoutCacheSkipsExplicitNoCacheInstall()
     {
         var workflow = Workflow([
@@ -158,6 +246,6 @@ public sealed class CacheRuleTests
     private static WorkflowDocument Workflow(IReadOnlyList<WorkflowStep> steps) =>
         new("ci.yml", "CI", [new WorkflowJob("test", null, steps)]);
 
-    private static RepositoryContext Repository(IReadOnlyList<string>? lockFiles = null) =>
-        new(".", lockFiles ?? [], lockFiles ?? [], [], [], [], []);
+    private static RepositoryContext Repository(IReadOnlyList<string>? lockFiles = null, IReadOnlyList<string>? packageJsonFiles = null) =>
+        new(".", (lockFiles ?? []).Concat(packageJsonFiles ?? []).ToArray(), lockFiles ?? [], packageJsonFiles ?? [], [], [], []);
 }
