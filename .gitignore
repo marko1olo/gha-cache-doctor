@@ -9,3 +9,4 @@ TestResults/
 *.nupkg
 coverage/
 plan.md
+IMPLEMENTATION_STATUS.md

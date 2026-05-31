@@ -1,0 +1,83 @@
+using System.Text.Json;
+using GhaCacheDoctor.Core;
+using GhaCacheDoctor.Reporters;
+
+namespace GhaCacheDoctor.Cli.Tests;
+
+public sealed class ReporterTests
+{
+    [Fact]
+    public void TextReporterReturnsNoIssuesMessageForEmptyResult()
+    {
+        var result = new ScanResult([], []);
+
+        var output = new TextReporter().Render(result);
+
+        Assert.Equal("No cache issues found." + Environment.NewLine, output);
+    }
+
+    [Fact]
+    public void TextReporterIncludesFindingContextAndRecommendation()
+    {
+        var result = new ScanResult([
+            new Finding(
+                "GHA-CACHE001",
+                Severity.Info,
+                "performance",
+                "actions/setup-node is used without dependency caching.",
+                "Add `cache: npm`.",
+                ".github/workflows/ci.yml",
+                14,
+                "test",
+                "Setup Node")
+        ], []);
+
+        var output = new TextReporter().Render(result);
+
+        Assert.Contains("[info] GHA-CACHE001 setup-node-cache-missing", output);
+        Assert.Contains("Job: test", output);
+        Assert.Contains("Step: Setup Node", output);
+        Assert.Contains("Line: 14", output);
+        Assert.Contains("Recommendation: Add `cache: npm`.", output);
+    }
+
+    [Fact]
+    public void TextReporterIncludesParseErrors()
+    {
+        var result = new ScanResult([], [
+            new WorkflowParseError(".github/workflows/bad.yml", 3, "Invalid YAML")
+        ]);
+
+        var output = new TextReporter().Render(result);
+
+        Assert.Contains("[error] parse-error .github/workflows/bad.yml", output);
+        Assert.Contains("Line: 3", output);
+        Assert.Contains("Invalid YAML", output);
+    }
+
+    [Fact]
+    public void JsonReporterUsesCamelCaseAndStringSeverity()
+    {
+        var result = new ScanResult([
+            new Finding(
+                "GHA-CACHE003",
+                Severity.Warning,
+                "correctness",
+                "Weak cache key.",
+                "Use hashFiles.",
+                ".github/workflows/ci.yml",
+                8,
+                "test",
+                "Cache npm")
+        ], []);
+
+        var output = new JsonReporter().Render(result);
+        using var document = JsonDocument.Parse(output);
+        var finding = document.RootElement.GetProperty("findings")[0];
+
+        Assert.Equal("GHA-CACHE003", finding.GetProperty("ruleId").GetString());
+        Assert.Equal("warning", finding.GetProperty("severity").GetString());
+        Assert.Equal("Cache npm", finding.GetProperty("stepName").GetString());
+        Assert.True(document.RootElement.TryGetProperty("parseErrors", out _));
+    }
+}

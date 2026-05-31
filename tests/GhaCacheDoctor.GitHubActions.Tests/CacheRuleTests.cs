@@ -78,6 +78,83 @@ public sealed class CacheRuleTests
         Assert.Empty(findings);
     }
 
+    [Fact]
+    public void RestoreKeysTooBroadReportsStaticPrefix()
+    {
+        var workflow = Workflow([
+            new("Cache npm", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = "~/.npm",
+                ["key"] = "${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}",
+                ["restore-keys"] = "npm-"
+            }, 5)
+        ]);
+
+        var finding = Assert.Single(new RestoreKeysTooBroadRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE004", finding.RuleId);
+        Assert.Equal(Severity.Info, finding.Severity);
+    }
+
+    [Fact]
+    public void RestoreKeysTooBroadAllowsContextualPrefix()
+    {
+        var workflow = Workflow([
+            new("Cache npm", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = "~/.npm",
+                ["key"] = "${{ runner.os }}-npm-apps-web-${{ hashFiles('apps/web/package-lock.json') }}",
+                ["restore-keys"] = "${{ runner.os }}-npm-apps-web-"
+            }, 5)
+        ]);
+
+        var findings = new RestoreKeysTooBroadRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void InstallStepWithoutCacheReportsDependencyInstall()
+    {
+        var workflow = Workflow([
+            new("Install", null, "dotnet restore", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new InstallStepWithoutCacheRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE005", finding.RuleId);
+        Assert.Equal("test", finding.JobId);
+    }
+
+    [Fact]
+    public void InstallStepWithoutCacheAllowsMatchingCache()
+    {
+        var workflow = Workflow([
+            new("Cache NuGet", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = "~/.nuget/packages",
+                ["key"] = "${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}"
+            }, 5),
+            new("Restore", null, "dotnet restore", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new InstallStepWithoutCacheRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void InstallStepWithoutCacheSkipsExplicitNoCacheInstall()
+    {
+        var workflow = Workflow([
+            new("Install", null, "pip install --no-cache-dir -r requirements.txt", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new InstallStepWithoutCacheRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
     private static WorkflowDocument Workflow(IReadOnlyList<WorkflowStep> steps) =>
         new("ci.yml", "CI", [new WorkflowJob("test", null, steps)]);
 
