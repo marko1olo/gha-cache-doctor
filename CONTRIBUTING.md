@@ -48,6 +48,19 @@ A typical rule contribution should include:
 - a rule document under `docs/rules`,
 - README rule table updates if needed.
 
+## Finding Something To Work On
+
+The issue tracker is organized for external contributors:
+
+- [`good first issue`](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22): small, well-bounded work.
+- [`beginner friendly`](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22beginner%20friendly%22): approachable if you are new to the codebase.
+- [`help wanted`](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22help%20wanted%22): open for outside contribution.
+- [`up for grabs`](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22up%20for%20grabs%22): no one is actively working on it yet.
+- [`rule`](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3Arule): cache analysis rules.
+- [`output`](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3Aoutput): reporters and output formats.
+
+If you want to work on an issue, leave a short comment with your intended approach. Small pull requests are easiest to review and merge.
+
 ## Test Expectations
 
 Add tests for:

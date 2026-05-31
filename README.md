@@ -6,6 +6,8 @@
 
 A focused .NET CLI that scans GitHub Actions workflows for cache misconfigurations, weak cache keys, and missed dependency-cache opportunities.
 
+`gha-cache-doctor` is early, useful, and intentionally small. If you like CI/CD tooling, static analysis, or shaving minutes off slow pipelines, there are good first issues ready for contributors.
+
 ## Try It In 30 Seconds
 
 ```bash
@@ -30,6 +32,12 @@ GitHub Actions caching looks simple, but cache configuration is easy to get wron
 Current preview target: `0.1.0-preview.1`
 
 The project is ready for local preview usage. The CLI, parser, reporters, initial rules, tests, sample workflows, and contributor docs are in place. See [docs/project-status.md](docs/project-status.md) and [docs/roadmap.md](docs/roadmap.md).
+
+Looking for a place to help? Start here:
+
+- [Good first issues](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22)
+- [Help wanted](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22help%20wanted%22)
+- [Rule requests](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3Arule)
 
 ## Requirements
 
@@ -93,6 +101,8 @@ Recommendation: Include a dependency lockfile hash, for example `${{ runner.os }
 | [`GHA-CACHE003`](docs/rules/GHA-CACHE003-actions-cache-key-missing-lockfile-hash.md) | warning | correctness | Reports dependency caches whose keys do not include lockfile hashes. |
 | [`GHA-CACHE004`](docs/rules/GHA-CACHE004-restore-keys-too-broad.md) | info | maintainability | Reports overly broad `restore-keys` that may restore unrelated caches. |
 | [`GHA-CACHE005`](docs/rules/GHA-CACHE005-install-step-without-cache.md) | info | performance | Reports dependency install steps that appear to run without a matching cache. |
+
+Want to add the next rule? The rule system is intentionally simple: one small class, focused tests, one docs page, and a README table update. See [Adding a Rule](docs/contributing/adding-a-rule.md).
 
 ## CLI Reference
 
@@ -179,7 +189,23 @@ dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-action
 
 ## Contributing
 
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). For rule changes, see [docs/contributing/adding-a-rule.md](docs/contributing/adding-a-rule.md).
+Contributions are very welcome. The project has a small surface area, clear rule boundaries, and deterministic tests, so it is a good place to contribute focused CI/CD tooling improvements.
+
+Good contribution paths:
+
+- Add a cache rule for a package manager you use.
+- Improve monorepo detection and recommendations.
+- Add reporter output such as SARIF or GitHub annotations.
+- Add parser or false-positive tests from real workflows.
+- Improve docs with before/after workflow examples.
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md). For rule changes, see [docs/contributing/adding-a-rule.md](docs/contributing/adding-a-rule.md).
+
+Open contribution queues:
+
+- [Beginner friendly](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22beginner%20friendly%22)
+- [Up for grabs](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22up%20for%20grabs%22)
+- [High impact](https://github.com/Wezylnia/gha-cache-doctor/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22high%20impact%22)
 
 ## Roadmap
 
