@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GhaCacheDoctor.Cli/GhaCacheDoctor.Cli.csproj" />
+    <Project Path="src/GhaCacheDoctor.Core/GhaCacheDoctor.Core.csproj" />
+    <Project Path="src/GhaCacheDoctor.GitHubActions/GhaCacheDoctor.GitHubActions.csproj" />
+    <Project Path="src/GhaCacheDoctor.Reporters/GhaCacheDoctor.Reporters.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GhaCacheDoctor.Cli.Tests/GhaCacheDoctor.Cli.Tests.csproj" />
+    <Project Path="tests/GhaCacheDoctor.Core.Tests/GhaCacheDoctor.Core.Tests.csproj" />
+    <Project Path="tests/GhaCacheDoctor.GitHubActions.Tests/GhaCacheDoctor.GitHubActions.Tests.csproj" />
+  </Folder>
+</Solution>
