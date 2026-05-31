@@ -1,57 +1,116 @@
 # gha-cache-doctor
 
-A GitHub Actions cache configuration linter and optimization advisor.
+[![CI](https://github.com/Wezylnia/gha-cache-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/Wezylnia/gha-cache-doctor/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/Wezylnia/gha-cache-doctor?include_prereleases)](https://github.com/Wezylnia/gha-cache-doctor/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`gha-cache-doctor` scans workflow files for missing, weak, or inefficient cache configuration and suggests package-manager-aware fixes.
+A focused .NET CLI that scans GitHub Actions workflows for cache misconfigurations, weak cache keys, and missed dependency-cache opportunities.
+
+## Try It In 30 Seconds
+
+```bash
+dotnet restore
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --fail-on none
+```
+
+JSON output:
+
+```bash
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --format json --fail-on none
+```
+
+## Why It Exists
+
+GitHub Actions caching looks simple, but cache configuration is easy to get wrong. A workflow can install dependencies on every run, use a cache key that never invalidates correctly, or miss monorepo lockfiles entirely.
+
+`gha-cache-doctor` focuses only on cache quality. It does not replace general workflow linters. Instead, it gives package-manager-aware findings and practical suggestions for improving CI cache behavior.
 
 ## Status
 
-This repository contains the MVP implementation. It supports GitHub Actions workflows, text and JSON output, rule include/exclude filtering, `--fail-on`, and the first cache-quality rules.
+Current preview target: `0.1.0-preview.1`
 
-## Build
+The project is ready for local preview usage. The CLI, parser, reporters, initial rules, tests, sample workflows, and contributor docs are in place. See [docs/project-status.md](docs/project-status.md) and [docs/roadmap.md](docs/roadmap.md).
+
+## Requirements
+
+- .NET SDK 10
+
+## Install
+
+For local preview packaging:
 
 ```bash
-dotnet build
-dotnet test
+dotnet pack src/GhaCacheDoctor.Cli --configuration Release
+dotnet tool install --tool-path .tmp/tools gha-cache-doctor --version 0.1.0-preview.1 --add-source src/GhaCacheDoctor.Cli/bin/Release
+.tmp/tools/gha-cache-doctor scan --path samples/github-actions/bad --fail-on none
 ```
 
-## Usage
+After a public package is published:
+
+```bash
+dotnet tool install --global gha-cache-doctor --version 0.1.0-preview.1
+gha-cache-doctor scan
+```
+
+## Quick Start
+
+Scan the default workflow directory:
 
 ```bash
 dotnet run --project src/GhaCacheDoctor.Cli -- scan
 ```
 
-By default, the scanner reads:
-
-```text
-.github/workflows/*.yml
-.github/workflows/*.yaml
-```
-
-Common options:
+Scan a specific workflow directory:
 
 ```bash
-dotnet run --project src/GhaCacheDoctor.Cli -- scan --repo .
-dotnet run --project src/GhaCacheDoctor.Cli -- scan --path .github/workflows/ci.yml
-dotnet run --project src/GhaCacheDoctor.Cli -- scan --format json
-dotnet run --project src/GhaCacheDoctor.Cli -- scan --fail-on warning
-dotnet run --project src/GhaCacheDoctor.Cli -- scan --include GHA-CACHE001,GHA-CACHE003
-dotnet run --project src/GhaCacheDoctor.Cli -- scan --exclude GHA-CACHE004
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --path .github/workflows
 ```
 
-## Sample Output
+Fail CI on warnings or errors:
+
+```bash
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --fail-on warning
+```
+
+## Example Output
 
 ```text
-.github/workflows/ci.yml
+samples/github-actions/bad/weak-cache-key.yml
 
-[info] GHA-CACHE001 setup-node-cache-missing
+[warning] GHA-CACHE003 actions-cache-key-missing-lockfile-hash
 Job: test
-Step: Setup Node
-actions/setup-node is used without dependency caching.
-Recommendation: Add `cache: npm` to the setup-node `with` block.
+Step: Cache npm
+actions/cache uses a dependency cache path, but the key does not include a lockfile hash.
+Recommendation: Include a dependency lockfile hash, for example `${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}`.
 ```
 
-## Exit Codes
+## Rules
+
+| Rule | Severity | Category | Description |
+|---|---:|---|---|
+| [`GHA-CACHE001`](docs/rules/GHA-CACHE001-setup-node-cache-missing.md) | info | performance | Reports `actions/setup-node` usage without dependency caching when Node installs are present. |
+| [`GHA-CACHE002`](docs/rules/GHA-CACHE002-setup-node-cache-dependency-path-missing.md) | warning | performance | Reports `setup-node` cache usage without `cache-dependency-path` in likely monorepos. |
+| [`GHA-CACHE003`](docs/rules/GHA-CACHE003-actions-cache-key-missing-lockfile-hash.md) | warning | correctness | Reports dependency caches whose keys do not include lockfile hashes. |
+| [`GHA-CACHE004`](docs/rules/GHA-CACHE004-restore-keys-too-broad.md) | info | maintainability | Reports overly broad `restore-keys` that may restore unrelated caches. |
+| [`GHA-CACHE005`](docs/rules/GHA-CACHE005-install-step-without-cache.md) | info | performance | Reports dependency install steps that appear to run without a matching cache. |
+
+## CLI Reference
+
+```text
+gha-cache-doctor scan [options]
+
+Options:
+  --repo <path>             Repository root. Defaults to current directory.
+  --path <path>             Workflow file or directory. Defaults to .github/workflows.
+  --format <text|json>      Output format. Defaults to text.
+  --fail-on <none|info|warning|error>
+  --include <ids>           Comma-separated rule IDs to include.
+  --exclude <ids>           Comma-separated rule IDs to exclude.
+  --strict                  Enable stricter rule behavior.
+  -h, --help                Show help.
+```
+
+Exit codes:
 
 ```text
 0 = no findings at or above the fail threshold
@@ -60,40 +119,74 @@ Recommendation: Add `cache: npm` to the setup-node `with` block.
 3 = workflow parse error
 ```
 
-Findings do not fail the command unless `--fail-on` is provided.
+## JSON Output
 
-## Supported Rules
+```bash
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --format json
+```
 
-| Rule | Severity | Summary |
-| --- | --- | --- |
-| GHA-CACHE001 | info | `actions/setup-node` is used without dependency caching. |
-| GHA-CACHE002 | warning | Monorepo-like Node repository uses setup-node cache without `cache-dependency-path`. |
-| GHA-CACHE003 | warning | `actions/cache` dependency cache key does not include a lockfile hash. |
-| GHA-CACHE004 | info | `restore-keys` are broad enough to restore unrelated caches. |
-| GHA-CACHE005 | info | A job installs dependencies without a matching cache mechanism. |
+The JSON schema is intentionally simple and stable for CI consumption:
 
-Detailed rule docs live in [docs/rules](docs/rules).
+```json
+{
+  "findings": [
+    {
+      "ruleId": "GHA-CACHE003",
+      "severity": "warning",
+      "category": "correctness",
+      "message": "actions/cache uses a dependency cache path, but the key does not include a lockfile hash.",
+      "recommendation": "Include a dependency lockfile hash, for example `${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}`.",
+      "filePath": ".github/workflows/ci.yml",
+      "line": 10,
+      "jobId": "test",
+      "stepName": "Cache npm"
+    }
+  ],
+  "parseErrors": []
+}
+```
 
-## CI Usage
+## GitHub Actions Usage
 
 ```yaml
 - name: Check GitHub Actions cache configuration
   run: dotnet run --project src/GhaCacheDoctor.Cli -- scan --fail-on warning
 ```
 
-## Design
+Once installed as a tool:
 
-The solution is split into focused projects:
+```yaml
+- name: Install gha-cache-doctor
+  run: dotnet tool install --global gha-cache-doctor --version 0.1.0-preview.1
 
-```text
-src/GhaCacheDoctor.Cli
-src/GhaCacheDoctor.Core
-src/GhaCacheDoctor.GitHubActions
-src/GhaCacheDoctor.Reporters
+- name: Check cache configuration
+  run: gha-cache-doctor scan --fail-on warning
 ```
 
-The core project owns domain models and orchestration. GitHub Actions parsing and rules are isolated from CLI concerns. Reporters are small output adapters.
+## Development
+
+```bash
+dotnet restore
+dotnet build GhaCacheDoctor.slnx
+dotnet test GhaCacheDoctor.slnx
+```
+
+Run the CLI locally:
+
+```bash
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --fail-on none
+```
 
 ## Contributing
 
-Keep rules deterministic, conservative, and package-manager-aware. Add focused tests for parser behavior, repository context detection, false-positive avoidance, and reporter output whenever a rule changes.
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). For rule changes, see [docs/contributing/adding-a-rule.md](docs/contributing/adding-a-rule.md).
+
+## Roadmap
+
+- [Project status](docs/project-status.md)
+- [Roadmap](docs/roadmap.md)
+- [Release checklist](docs/release-checklist.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE).

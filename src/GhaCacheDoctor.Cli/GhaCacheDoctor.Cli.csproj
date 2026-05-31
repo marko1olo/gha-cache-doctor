@@ -11,12 +11,23 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>gha-cache-doctor</AssemblyName>
     <PackageId>gha-cache-doctor</PackageId>
+    <Version>0.1.0-preview.1</Version>
+    <Authors>Wezylnia</Authors>
+    <Description>A focused CLI that scans GitHub Actions workflows for cache misconfigurations and missed cache opportunities.</Description>
+    <PackageTags>github-actions;cache;ci-cd;devops;cli;dotnet;static-analysis</PackageTags>
+    <PackageProjectUrl>https://github.com/Wezylnia/gha-cache-doctor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Wezylnia/gha-cache-doctor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>gha-cache-doctor</ToolCommandName>
-    <Description>A GitHub Actions cache configuration linter and optimization advisor.</Description>
-    <Authors>gha-cache-doctor contributors</Authors>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>

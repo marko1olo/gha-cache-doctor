@@ -1,0 +1,25 @@
+name: Rule request
+description: Suggest a new cache analysis rule.
+title: "rule: "
+labels: [rule-request]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Cache problem
+      description: What cache misconfiguration should the rule detect?
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example workflow
+      description: Provide a small YAML example if possible.
+    validations:
+      required: false
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested recommendation
+    validations:
+      required: false
