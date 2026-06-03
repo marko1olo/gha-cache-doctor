@@ -1,0 +1,30 @@
+name: Documentation improvement
+description: Suggest a documentation change or missing example.
+title: "docs: "
+labels: ["documentation"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - README
+        - Rule docs
+        - Examples
+        - Contributing guide
+        - Release docs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What should change?
+      description: Describe the missing, confusing, or outdated documentation.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Link to the current docs or describe the workflow/package manager involved.

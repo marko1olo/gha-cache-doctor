@@ -212,6 +212,13 @@ Open contribution queues:
 - [Project status](docs/project-status.md)
 - [Roadmap](docs/roadmap.md)
 - [Release checklist](docs/release-checklist.md)
+- [Rule catalog](docs/rules/README.md)
+
+## Repository Governance
+
+The public repository is set up for small, reviewable contributions. Issues are labeled for rule work, output formats, beginner-friendly tasks, and high-impact improvements. Pull requests should include tests and docs for user-visible behavior changes.
+
+Maintainer review is required before merge, and dependency update PRs should keep CI green before release work.
 
 ## License
 

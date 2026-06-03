@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/Wezylnia/gha-cache-doctor/discussions
+    about: Ask questions, compare cache strategies, or share workflow examples.
+  - name: Rule documentation
+    url: https://github.com/Wezylnia/gha-cache-doctor/tree/main/docs/rules
+    about: Read existing rule documentation before opening a new rule request.
