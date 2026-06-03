@@ -218,6 +218,8 @@ Open contribution queues:
 
 The public repository is set up for small, reviewable contributions. Issues are labeled for rule work, output formats, beginner-friendly tasks, and high-impact improvements. Pull requests should include tests and docs for user-visible behavior changes.
 
+`main` is protected with required CI, code-owner review, stale-review dismissal, last-push approval, conversation resolution, and disabled force pushes/deletions. Repository admins keep emergency bypass ability. GitHub Copilot automatic PR review is enabled for pull requests targeting `main`.
+
 Maintainer review is required before merge, and dependency update PRs should keep CI green before release work.
 
 ## License

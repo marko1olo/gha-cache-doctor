@@ -29,6 +29,22 @@ Goal: make the current tool installable, documented, and safe to share publicly.
 - Review README install instructions after the first package is published.
 - Create the `v0.1.0-preview.1` GitHub release.
 
+## Repository Protection
+
+The repository is configured so public contribution should flow through pull requests:
+
+- `main` is protected.
+- The `build` GitHub Actions check is required before merge.
+- Pull requests require at least one approving review.
+- Code-owner review is required.
+- `CODEOWNERS` assigns all files to `@Wezylnia`.
+- Stale approvals are dismissed after new commits are pushed.
+- The most recent push must be approved by someone other than the pusher.
+- Conversation resolution is required before merge.
+- Force pushes and branch deletion are disabled.
+- Administrators are not locked out, so the maintainer keeps emergency bypass ability.
+- GitHub Copilot is configured for automatic pull request review on pushes to PRs targeting `main`.
+
 ## Next After Preview
 
 The next milestone is `v0.1.0`, focused on:
