@@ -6,12 +6,16 @@
     <ProjectReference Include="..\GhaCacheDoctor.Reporters\GhaCacheDoctor.Reporters.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="18.0.0" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>gha-cache-doctor</AssemblyName>
     <PackageId>gha-cache-doctor</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Authors>Wezylnia</Authors>
     <Description>A focused CLI that scans GitHub Actions workflows for cache misconfigurations and missed cache opportunities.</Description>
     <PackageTags>github-actions;cache;ci-cd;devops;cli;dotnet;static-analysis</PackageTags>

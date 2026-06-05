@@ -7,7 +7,8 @@ public sealed record ScanOptions(
     Severity? FailOn,
     IReadOnlySet<string> IncludeRuleIds,
     IReadOnlySet<string> ExcludeRuleIds,
-    bool Strict);
+    bool Strict,
+    IReadOnlyDictionary<string, Severity> SeverityOverrides);
 
 public enum OutputFormat
 {

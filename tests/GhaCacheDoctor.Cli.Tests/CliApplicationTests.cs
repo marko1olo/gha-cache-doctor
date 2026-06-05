@@ -145,6 +145,120 @@ public sealed class CliApplicationTests
     }
 
     [Fact]
+    public void ScanLoadsDefaultConfigFile()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".gha-cache-doctor.yml",
+            """
+            exclude:
+              - GHA-CACHE003
+            """);
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+        var output = new StringWriter();
+
+        var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal("No cache issues found." + Environment.NewLine, output.ToString());
+    }
+
+    [Fact]
+    public void ScanAppliesConfigSeverityOverrideBeforeFailOn()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".gha-cache-doctor.yml",
+            """
+            failOn: warning
+            severity:
+              GHA-CACHE005: warning
+            """);
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - run: dotnet restore
+            """);
+        var output = new StringWriter();
+
+        var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path]);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("[warning] GHA-CACHE005", output.ToString());
+    }
+
+    [Fact]
+    public void ScanCliExcludeOverridesConfigInclude()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".gha-cache-doctor.yml",
+            """
+            include:
+              - GHA-CACHE003
+            """);
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+        var output = new StringWriter();
+
+        var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path, "--exclude", "GHA-CACHE003"]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal("No cache issues found." + Environment.NewLine, output.ToString());
+    }
+
+    [Fact]
+    public void ScanConfigNoneDisablesDefaultConfigFile()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".gha-cache-doctor.yml",
+            """
+            exclude:
+              - GHA-CACHE003
+            """);
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+        var output = new StringWriter();
+
+        var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path, "--config", "none"]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("GHA-CACHE003", output.ToString());
+    }
+
+    [Fact]
     public void ScanReturnsThreeForParseErrors()
     {
         using var directory = new TempDirectory();

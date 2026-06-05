@@ -40,7 +40,8 @@ public sealed class WorkflowScanner
 
             foreach (var rule in selectedRules)
             {
-                findings.AddRange(rule.Analyze(parseResult.Workflow, repository, options.Strict));
+                findings.AddRange(rule.Analyze(parseResult.Workflow, repository, options.Strict)
+                    .Select(finding => ApplySeverityOverride(finding, options)));
             }
         }
 
@@ -61,6 +62,11 @@ public sealed class WorkflowScanner
 
         return !options.ExcludeRuleIds.Contains(rule.Id);
     }
+
+    private static Finding ApplySeverityOverride(Finding finding, ScanOptions options) =>
+        options.SeverityOverrides.TryGetValue(finding.RuleId, out var severity)
+            ? finding with { Severity = severity }
+            : finding;
 
     private static IEnumerable<string> ResolveWorkflowFiles(ScanOptions options)
     {
