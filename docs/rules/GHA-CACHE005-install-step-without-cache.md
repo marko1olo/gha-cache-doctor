@@ -12,6 +12,8 @@ Dependency installs are often among the slowest parts of CI. A nearby cache can 
 
 Use the package-manager-specific cache mechanism for the job, such as setup-node `cache` or `actions/cache` for NuGet, pip, or Gradle cache directories.
 
+See the [Cache Key Cookbook](../cache-key-cookbook.md) for package-manager-specific cache examples.
+
 ## Examples
 
 ### Bad

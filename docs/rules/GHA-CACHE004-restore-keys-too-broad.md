@@ -12,6 +12,8 @@ Broad restore keys can make cache behavior harder to reason about, especially ac
 
 Include runner OS, package manager, project path when relevant, and dependency context.
 
+See the [Cache Key Cookbook](../cache-key-cookbook.md) for restore key examples that stay scoped by package manager and project.
+
 ## Examples
 
 ### Bad

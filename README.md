@@ -104,6 +104,8 @@ Recommendation: Include a dependency lockfile hash, for example `${{ runner.os }
 
 Want to add the next rule? The rule system is intentionally simple: one small class, focused tests, one docs page, and a README table update. See [Adding a Rule](docs/contributing/adding-a-rule.md).
 
+Need practical cache key patterns? See the [Cache Key Cookbook](docs/cache-key-cookbook.md) for before/after examples across common package managers and Docker BuildKit.
+
 ## CLI Reference
 
 ```text
