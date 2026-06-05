@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The project follows preview releases until the first stable `1.0.0`.
 
+## 0.1.0 - 2026-06-05
+
+### Added
+
+- Strict-mode behavior for broader restore-key and install-step cache checks.
+- Repository context detection for `global.json`, `pyproject.toml`, Gradle files, and Docker Compose files.
+- Direct unit coverage for `GHA-CACHE004` and `GHA-CACHE005`.
+- Direct text and JSON reporter tests.
+
+### Changed
+
+- Promoted the package version from `0.1.0-preview.1` to `0.1.0`.
+- Updated project status, roadmap, and install documentation for the polished MVP release.
+
 ## 0.1.0-preview.1 - 2026-05-31
 
 ### Added

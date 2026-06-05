@@ -4,11 +4,11 @@ This public status document tracks user-facing progress from the current MVP tow
 
 ## Current Version Target
 
-Current preview target: `0.1.0-preview.1`
+Current release: `0.1.0`
 
-Goal: make the current tool installable, documented, and safe to share publicly.
+Goal: keep the MVP stable while preparing configuration support for `v0.2.0`.
 
-## Completed For Preview
+## Completed In v0.1.0
 
 - .NET 10 target framework.
 - Local CLI.
@@ -17,17 +17,20 @@ Goal: make the current tool installable, documented, and safe to share publicly.
 - Include/exclude filtering.
 - `--fail-on` exit-code behavior, including `--fail-on none`.
 - Strict mode behavior for selected rules.
+- Repository context detection for Node, .NET, Python, Gradle, Dockerfile, and Docker Compose hints.
 - Initial cache rules.
 - Sample good and bad workflows.
 - README usage documentation.
 - Changelog, contributing, security, code of conduct, roadmap, and release checklist.
 - Rule, parser, repository context, reporter, and CLI tests.
 
-## Remaining For Preview
+## Remaining Before v0.2.0
 
-- Verify CI on GitHub-hosted runners once the workflow runs remotely.
-- Review README install instructions after the first package is published.
-- Create the `v0.1.0-preview.1` GitHub release.
+- Add `.gha-cache-doctor.yml` configuration support.
+- Add rule disabling and severity overrides.
+- Add path and rule ignores.
+- Add config validation errors with helpful CLI output.
+- Document config examples.
 
 ## Repository Protection
 
@@ -45,15 +48,15 @@ The repository is configured so public contribution should flow through pull req
 - Administrators are not locked out, so the maintainer keeps emergency bypass ability.
 - GitHub Copilot is configured for automatic pull request review on pushes to PRs targeting `main`.
 
-## Next After Preview
+## Next Release
 
-The next milestone is `v0.1.0`, focused on:
+The next milestone is `v0.2.0`, focused on:
 
-- broader parser edge-case coverage,
-- source-location polish,
-- more strict-mode checks,
-- expanded repository context detection,
-- first polished MVP release.
+- repository-local configuration,
+- rule and path ignores,
+- severity overrides,
+- config precedence with CLI flags,
+- config-focused tests and documentation.
 
 ## Validation Commands
 

@@ -89,7 +89,7 @@ public sealed class CliApplication
           --fail-on <none|info|warning|error>
           --include <ids>           Comma-separated rule IDs to include.
           --exclude <ids>           Comma-separated rule IDs to exclude.
-          --strict                  Reserved for stricter future rules.
+          --strict                  Enable stricter rule behavior.
           -h, --help                Show help.
 
         """;

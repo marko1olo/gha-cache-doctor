@@ -2,10 +2,11 @@
 
 ## Supported Versions
 
-`gha-cache-doctor` is currently in preview. Security issues are handled on a best-effort basis until the first stable release.
+`gha-cache-doctor` is currently pre-1.0. Security issues are handled on a best-effort basis until the first stable release.
 
 | Version | Supported |
 | --- | --- |
+| `0.1.0` | Best effort |
 | `0.1.0-preview.1` | Best effort |
 
 ## Reporting a Vulnerability

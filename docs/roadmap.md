@@ -2,7 +2,7 @@
 
 This roadmap describes the public path from the current MVP to `v1.0.0`.
 
-## v0.1.0-preview.1
+## v0.1.0-preview.1 - shipped
 
 Focus: package and documentation readiness.
 
@@ -13,7 +13,7 @@ Focus: package and documentation readiness.
 - Add sample workflows.
 - Add parser, rule, CLI, and reporter tests.
 
-## v0.1.0
+## v0.1.0 - shipped
 
 Focus: polished MVP.
 
@@ -22,6 +22,8 @@ Focus: polished MVP.
 - Expand strict mode coverage.
 - Expand repository context detection.
 - Add more end-to-end CLI tests.
+- Promote the package version out of preview.
+- Refresh public documentation for local usage and contribution.
 
 ## v0.2.0
 
@@ -32,6 +34,8 @@ Focus: configuration support.
 - Allow severity overrides.
 - Allow file/rule ignores.
 - Add config parse validation.
+- Document config examples for monorepos and mixed package managers.
+- Add tests for config precedence with `--include`, `--exclude`, and `--strict`.
 
 ## v0.3.0
 

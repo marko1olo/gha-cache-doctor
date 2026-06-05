@@ -6,7 +6,7 @@
 
 A focused .NET CLI that scans GitHub Actions workflows for cache misconfigurations, weak cache keys, and missed dependency-cache opportunities.
 
-`gha-cache-doctor` is early, useful, and intentionally small. If you like CI/CD tooling, static analysis, or shaving minutes off slow pipelines, there are good first issues ready for contributors.
+`gha-cache-doctor` is a polished MVP and intentionally small. If you like CI/CD tooling, static analysis, or shaving minutes off slow pipelines, there are good first issues ready for contributors.
 
 ## Try It In 30 Seconds
 
@@ -29,9 +29,9 @@ GitHub Actions caching looks simple, but cache configuration is easy to get wron
 
 ## Status
 
-Current preview target: `0.1.0-preview.1`
+Current release: `0.1.0`
 
-The project is ready for local preview usage. The CLI, parser, reporters, initial rules, tests, sample workflows, and contributor docs are in place. See [docs/project-status.md](docs/project-status.md) and [docs/roadmap.md](docs/roadmap.md).
+The project is ready for local usage and public contribution. The CLI, parser, reporters, strict-mode behavior, initial rules, tests, sample workflows, and contributor docs are in place. See [docs/project-status.md](docs/project-status.md) and [docs/roadmap.md](docs/roadmap.md).
 
 Looking for a place to help? Start here:
 
@@ -45,18 +45,18 @@ Looking for a place to help? Start here:
 
 ## Install
 
-For local preview packaging:
+For local packaging:
 
 ```bash
 dotnet pack src/GhaCacheDoctor.Cli --configuration Release
-dotnet tool install --tool-path .tmp/tools gha-cache-doctor --version 0.1.0-preview.1 --add-source src/GhaCacheDoctor.Cli/bin/Release
+dotnet tool install --tool-path .tmp/tools gha-cache-doctor --version 0.1.0 --add-source src/GhaCacheDoctor.Cli/bin/Release
 .tmp/tools/gha-cache-doctor scan --path samples/github-actions/bad --fail-on none
 ```
 
 After a public package is published:
 
 ```bash
-dotnet tool install --global gha-cache-doctor --version 0.1.0-preview.1
+dotnet tool install --global gha-cache-doctor --version 0.1.0
 gha-cache-doctor scan
 ```
 
@@ -167,7 +167,7 @@ Once installed as a tool:
 
 ```yaml
 - name: Install gha-cache-doctor
-  run: dotnet tool install --global gha-cache-doctor --version 0.1.0-preview.1
+  run: dotnet tool install --global gha-cache-doctor --version 0.1.0
 
 - name: Check cache configuration
   run: gha-cache-doctor scan --fail-on warning
