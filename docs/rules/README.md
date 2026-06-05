@@ -11,3 +11,5 @@
 | [`GHA-CACHE005`](GHA-CACHE005-install-step-without-cache.md) | Detects install steps that appear to run without a matching cache. |
 
 New rules should include focused tests, a rule document, and a README table update.
+
+For package-manager-specific key examples, see the [Cache Key Cookbook](../cache-key-cookbook.md).

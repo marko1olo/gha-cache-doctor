@@ -19,6 +19,8 @@ Include a lockfile hash in the key:
     key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
 ```
 
+See the [Cache Key Cookbook](../cache-key-cookbook.md) for package-manager-specific before/after examples.
+
 ## Examples
 
 ### Bad
