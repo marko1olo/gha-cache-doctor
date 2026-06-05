@@ -29,7 +29,7 @@ GitHub Actions caching looks simple, but cache configuration is easy to get wron
 
 ## Status
 
-Current release: `0.1.0`
+Current release: `0.2.0`
 
 The project is ready for local usage and public contribution. The CLI, parser, reporters, strict-mode behavior, initial rules, tests, sample workflows, and contributor docs are in place. See [docs/project-status.md](docs/project-status.md) and [docs/roadmap.md](docs/roadmap.md).
 
@@ -49,14 +49,14 @@ For local packaging:
 
 ```bash
 dotnet pack src/GhaCacheDoctor.Cli --configuration Release
-dotnet tool install --tool-path .tmp/tools gha-cache-doctor --version 0.1.0 --add-source src/GhaCacheDoctor.Cli/bin/Release
+dotnet tool install --tool-path .tmp/tools gha-cache-doctor --version 0.2.0 --add-source src/GhaCacheDoctor.Cli/bin/Release
 .tmp/tools/gha-cache-doctor scan --path samples/github-actions/bad --fail-on none
 ```
 
 After a public package is published:
 
 ```bash
-dotnet tool install --global gha-cache-doctor --version 0.1.0
+dotnet tool install --global gha-cache-doctor --version 0.2.0
 gha-cache-doctor scan
 ```
 
@@ -117,8 +117,26 @@ Options:
   --include <ids>           Comma-separated rule IDs to include.
   --exclude <ids>           Comma-separated rule IDs to exclude.
   --strict                  Enable stricter rule behavior.
+  --config <path|none>      Config file. Defaults to .gha-cache-doctor.yml if present.
   -h, --help                Show help.
 ```
+
+## Configuration
+
+`gha-cache-doctor` automatically reads `.gha-cache-doctor.yml` or `.gha-cache-doctor.yaml` from the repository root when present. Use `--config <path>` to choose a file or `--config none` to disable config loading.
+
+```yaml
+path: .github/workflows
+format: text
+failOn: warning
+strict: true
+exclude:
+  - GHA-CACHE004
+severity:
+  GHA-CACHE005: warning
+```
+
+CLI options take precedence over config values. See [Configuration](docs/configuration.md) for the full reference.
 
 Exit codes:
 
@@ -167,7 +185,7 @@ Once installed as a tool:
 
 ```yaml
 - name: Install gha-cache-doctor
-  run: dotnet tool install --global gha-cache-doctor --version 0.1.0
+  run: dotnet tool install --global gha-cache-doctor --version 0.2.0
 
 - name: Check cache configuration
   run: gha-cache-doctor scan --fail-on warning

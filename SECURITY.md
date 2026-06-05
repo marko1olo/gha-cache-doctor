@@ -6,6 +6,7 @@
 
 | Version | Supported |
 | --- | --- |
+| `0.2.0` | Best effort |
 | `0.1.0` | Best effort |
 | `0.1.0-preview.1` | Best effort |
 

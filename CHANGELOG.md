@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The project follows preview releases until the first stable `1.0.0`.
 
+## 0.2.0 - 2026-06-05
+
+### Added
+
+- `.gha-cache-doctor.yml` and `.gha-cache-doctor.yaml` configuration loading from the repository root.
+- `--config <path|none>` CLI option.
+- Config support for workflow path, output format, fail threshold, strict mode, included rules, excluded rules, and per-rule severity overrides.
+- Unit tests for config loading, CLI precedence, config disabling, and severity override behavior.
+- Configuration reference documentation.
+
+### Changed
+
+- CLI-provided values now explicitly take precedence over config-file values.
+- Package version updated to `0.2.0`.
+
 ## 0.1.0 - 2026-06-05
 
 ### Added

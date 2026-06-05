@@ -4,9 +4,9 @@ This public status document tracks user-facing progress from the current MVP tow
 
 ## Current Version Target
 
-Current release: `0.1.0`
+Current release: `0.2.0`
 
-Goal: keep the MVP stable while preparing configuration support for `v0.2.0`.
+Goal: keep configuration support stable while preparing CI-native output for `v0.3.0`.
 
 ## Completed In v0.1.0
 
@@ -24,13 +24,14 @@ Goal: keep the MVP stable while preparing configuration support for `v0.2.0`.
 - Changelog, contributing, security, code of conduct, roadmap, and release checklist.
 - Rule, parser, repository context, reporter, and CLI tests.
 
-## Remaining Before v0.2.0
+## Completed In v0.2.0
 
 - Add `.gha-cache-doctor.yml` configuration support.
 - Add rule disabling and severity overrides.
-- Add path and rule ignores.
+- Add workflow path, format, fail threshold, strict mode, include, exclude, and severity override config fields.
 - Add config validation errors with helpful CLI output.
 - Document config examples.
+- Add config behavior tests.
 
 ## Repository Protection
 
@@ -50,13 +51,12 @@ The repository is configured so public contribution should flow through pull req
 
 ## Next Release
 
-The next milestone is `v0.2.0`, focused on:
+The next milestone is `v0.3.0`, focused on:
 
-- repository-local configuration,
-- rule and path ignores,
-- severity overrides,
-- config precedence with CLI flags,
-- config-focused tests and documentation.
+- GitHub annotation output,
+- official GitHub Action wrapper,
+- Markdown report output,
+- CI-focused documentation and tests.
 
 ## Validation Commands
 

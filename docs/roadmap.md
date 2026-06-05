@@ -25,7 +25,7 @@ Focus: polished MVP.
 - Promote the package version out of preview.
 - Refresh public documentation for local usage and contribution.
 
-## v0.2.0
+## v0.2.0 - shipped
 
 Focus: configuration support.
 
