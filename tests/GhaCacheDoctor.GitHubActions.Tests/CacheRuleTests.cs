@@ -217,6 +217,19 @@ public sealed class CacheRuleTests
     }
 
     [Fact]
+    public void InstallStepWithoutCacheAllowsSetupPythonPipCache()
+    {
+        var workflow = Workflow([
+            new("Setup Python", "actions/setup-python@v5", null, new Dictionary<string, string> { ["cache"] = "pip" }, 5),
+            new("Install", null, "pip install -r requirements.txt", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new InstallStepWithoutCacheRule().Analyze(workflow, Repository(lockFiles: ["requirements.txt"]));
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
     public void InstallStepWithoutCacheStrictModeReportsLikelyNpmInstall()
     {
         var workflow = Workflow([
@@ -241,6 +254,87 @@ public sealed class CacheRuleTests
         var findings = new InstallStepWithoutCacheRule().Analyze(workflow, Repository());
 
         Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void SetupPythonPipCacheMissingReportsSetupPythonWithoutCache()
+    {
+        var workflow = Workflow([
+            new("Setup Python", "actions/setup-python@v5", null, new Dictionary<string, string>(), 5),
+            new("Install", null, "python -m pip install -r requirements.txt", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new SetupPythonPipCacheMissingRule().Analyze(workflow, Repository(lockFiles: ["requirements.txt"])));
+
+        Assert.Equal("GHA-CACHE006", finding.RuleId);
+        Assert.Equal("test", finding.JobId);
+        Assert.Equal("Setup Python", finding.StepName);
+        Assert.Contains("cache: pip", finding.Recommendation);
+    }
+
+    [Fact]
+    public void SetupPythonPipCacheMissingAllowsSetupPythonPipCache()
+    {
+        var workflow = Workflow([
+            new("Setup Python", "actions/setup-python@v5", null, new Dictionary<string, string> { ["cache"] = "pip" }, 5),
+            new("Install", null, "pip install -r requirements.txt", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new SetupPythonPipCacheMissingRule().Analyze(workflow, Repository(lockFiles: ["requirements.txt"]));
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void SetupPythonPipCacheMissingAllowsActionsCachePipPath()
+    {
+        var workflow = Workflow([
+            new("Setup Python", "actions/setup-python@v5", null, new Dictionary<string, string>(), 5),
+            new("Cache pip", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = "~/.cache/pip",
+                ["key"] = "${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}"
+            }, 8),
+            new("Install", null, "pip install -r requirements.txt", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new SetupPythonPipCacheMissingRule().Analyze(workflow, Repository(lockFiles: ["requirements.txt"]));
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void SetupPythonPipCacheMissingSkipsWithoutPythonHints()
+    {
+        var workflow = Workflow([
+            new("Setup Python", "actions/setup-python@v5", null, new Dictionary<string, string>(), 5),
+            new("Install", null, "pip install tox", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new SetupPythonPipCacheMissingRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void SetupPythonPipCacheMissingSkipsPoetryInstall()
+    {
+        var workflow = Workflow([
+            new("Setup Python", "actions/setup-python@v5", null, new Dictionary<string, string>(), 5),
+            new("Install", null, "poetry install", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new SetupPythonPipCacheMissingRule().Analyze(workflow, Repository(lockFiles: ["poetry.lock"]));
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void GitHubActionsRulesIncludesPythonPipRule()
+    {
+        var rules = GitHubActionsRules.CreateDefault();
+
+        Assert.Contains(rules, rule => rule.Id == "GHA-CACHE006");
     }
 
     private static WorkflowDocument Workflow(IReadOnlyList<WorkflowStep> steps) =>

@@ -7,6 +7,7 @@ internal static class RuleHelpers
     private static readonly string[] NodeInstallCommands = ["npm ci", "npm install", "yarn install", "pnpm install", "pnpm i"];
     private static readonly string[] DotnetInstallCommands = ["dotnet restore", "dotnet build", "dotnet test"];
     private static readonly string[] PythonInstallCommands = ["pip install", "poetry install"];
+    private static readonly string[] PipInstallCommands = ["pip install"];
     private static readonly string[] GradleInstallCommands = ["gradle build", "./gradlew build"];
 
     public static bool IsAction(WorkflowStep step, string actionName) =>
@@ -20,6 +21,13 @@ internal static class RuleHelpers
 
     public static bool HasNodeInstall(WorkflowJob job) => job.Steps.Any(step => ContainsAny(step.Run, NodeInstallCommands));
 
+    public static bool HasPythonInstall(WorkflowJob job) => job.Steps.Any(step => ContainsAny(step.Run, PythonInstallCommands));
+
+    public static bool HasPipInstall(WorkflowJob job) => job.Steps.Any(step => ContainsAny(step.Run, PipInstallCommands));
+
+    public static bool HasPythonHints(RepositoryContext repository) =>
+        repository.PythonProjectFiles.Count > 0 || repository.LockFiles.Any(IsPythonLockFile);
+
     public static bool HasAnyInstall(WorkflowJob job) => job.Steps.Any(step =>
         ContainsAny(step.Run, NodeInstallCommands) ||
         ContainsAny(step.Run, DotnetInstallCommands) ||
@@ -30,8 +38,13 @@ internal static class RuleHelpers
         job.Steps.Any(step => IsAction(step, "actions/setup-node") && HasWith(step, "cache")) ||
         job.Steps.Any(step => IsAction(step, "actions/cache") && IsNodeCachePath(GetWith(step, "path")));
 
+    public static bool HasPythonCache(WorkflowJob job) =>
+        job.Steps.Any(step => IsAction(step, "actions/setup-python") && IsPipCache(GetWith(step, "cache"))) ||
+        job.Steps.Any(step => IsAction(step, "actions/cache") && IsPythonCachePath(GetWith(step, "path")));
+
     public static bool HasRelevantCache(WorkflowJob job) =>
         HasNodeCache(job) ||
+        HasPythonCache(job) ||
         job.Steps.Any(step => IsAction(step, "actions/cache") && IsKnownDependencyCachePath(GetWith(step, "path")));
 
     public static bool IsKnownDependencyCachePath(string? path) =>
@@ -39,6 +52,21 @@ internal static class RuleHelpers
 
     public static bool IsNodeCachePath(string? path) =>
         ContainsAny(path, ["~/.npm", "~/.cache/yarn", "~/.pnpm-store"]);
+
+    public static bool IsPythonCachePath(string? path) =>
+        ContainsAny(path, ["~/.cache/pip"]);
+
+    public static bool IsPipCache(string? cache) =>
+        cache?.Equals("pip", StringComparison.OrdinalIgnoreCase) == true;
+
+    public static bool IsPythonLockFile(string path)
+    {
+        var fileName = Path.GetFileName(path);
+        return fileName.Equals("requirements.txt", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Equals("pyproject.toml", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Equals("poetry.lock", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Equals("Pipfile.lock", StringComparison.OrdinalIgnoreCase);
+    }
 
     public static bool ContainsLockfileSignal(string? value) =>
         ContainsAny(value, ["hashFiles(", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml", "packages.lock.json", "requirements.txt", "poetry.lock", "Pipfile.lock", "gradle.lockfile"]);

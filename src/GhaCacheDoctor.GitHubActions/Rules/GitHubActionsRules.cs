@@ -10,6 +10,7 @@ public static class GitHubActionsRules
         new SetupNodeCacheDependencyPathMissingRule(),
         new ActionsCacheKeyMissingLockfileHashRule(),
         new RestoreKeysTooBroadRule(),
-        new InstallStepWithoutCacheRule()
+        new InstallStepWithoutCacheRule(),
+        new SetupPythonPipCacheMissingRule()
     ];
 }
