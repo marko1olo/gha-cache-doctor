@@ -83,7 +83,12 @@ public sealed class CliApplication
     }
 
     private static IReporter CreateReporter(OutputFormat format) =>
-        format is OutputFormat.Json ? new JsonReporter() : new TextReporter();
+        format switch
+        {
+            OutputFormat.Json => new JsonReporter(),
+            OutputFormat.GitHubSummary => new GitHubSummaryReporter(),
+            _ => new TextReporter()
+        };
 
     private static string HelpText() =>
         """
@@ -95,7 +100,8 @@ public sealed class CliApplication
         Options:
           --repo <path>             Repository root. Defaults to current directory.
           --path <path>             Workflow file or directory. Defaults to .github/workflows.
-          --format <text|json>      Output format. Defaults to text.
+          --format <text|json|github-summary>
+                                    Output format. Defaults to text.
           --fail-on <none|info|warning|error>
           --include <ids>           Comma-separated rule IDs to include.
           --exclude <ids>           Comma-separated rule IDs to exclude.
@@ -134,6 +140,26 @@ internal sealed record ParsedScanArguments(
             exclude,
             Strict ?? config.Strict ?? false,
             config.SeverityOverrides);
+    }
+}
+
+internal static class OutputFormatParser
+{
+    public static OutputFormat Parse(string value, string name) =>
+        TryParse(value, out var format)
+            ? format
+            : throw new InvalidOperationException($"Invalid {name} value: {value}.");
+
+    public static bool TryParse(string value, out OutputFormat format)
+    {
+        if (value.Equals("github-summary", StringComparison.OrdinalIgnoreCase) ||
+            value.Equals("githubsummary", StringComparison.OrdinalIgnoreCase))
+        {
+            format = OutputFormat.GitHubSummary;
+            return true;
+        }
+
+        return Enum.TryParse(value, true, out format);
     }
 }
 
@@ -179,9 +205,9 @@ internal static class ScanArguments
                     workflowPath = path;
                     break;
                 case "--format":
-                    if (!TryReadValue(args, ref index, out var formatValue) || !Enum.TryParse(formatValue, true, out format))
+                    if (!TryReadValue(args, ref index, out var formatValue) || !OutputFormatParser.TryParse(formatValue, out format))
                     {
-                        return Error("--format must be text or json.");
+                        return Error("--format must be text, json, or github-summary.");
                     }
 
                     outputFormat = format;
@@ -379,7 +405,7 @@ internal static class ScanConfigLoader
                     workflowPath = Scalar(entry.Value);
                     break;
                 case "format":
-                    format = ParseEnum<OutputFormat>(Scalar(entry.Value), "format");
+                    format = OutputFormatParser.Parse(Scalar(entry.Value), "format");
                     break;
                 case "failOn":
                 case "fail-on":
