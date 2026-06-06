@@ -9,6 +9,7 @@
 | [`GHA-CACHE003`](GHA-CACHE003-actions-cache-key-missing-lockfile-hash.md) | Detects dependency cache keys that do not include lockfile hashes. |
 | [`GHA-CACHE004`](GHA-CACHE004-restore-keys-too-broad.md) | Detects overly broad restore keys. |
 | [`GHA-CACHE005`](GHA-CACHE005-install-step-without-cache.md) | Detects install steps that appear to run without a matching cache. |
+| [`GHA-CACHE006`](GHA-CACHE006-gradle-cache-missing.md) | Detects Gradle build or test jobs that run before Gradle dependency caching is configured. |
 
 New rules should include focused tests, a rule document, and a README table update.
 

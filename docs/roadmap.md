@@ -59,7 +59,6 @@ Focus: broader cache coverage.
 
 - Add dotnet restore cache rule.
 - Add Python pip cache rule.
-- Add Gradle cache rule.
 - Add Docker BuildKit layer cache rule.
 
 ## v1.0.0

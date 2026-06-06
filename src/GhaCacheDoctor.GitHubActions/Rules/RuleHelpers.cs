@@ -7,7 +7,9 @@ internal static class RuleHelpers
     private static readonly string[] NodeInstallCommands = ["npm ci", "npm install", "yarn install", "pnpm install", "pnpm i"];
     private static readonly string[] DotnetInstallCommands = ["dotnet restore", "dotnet build", "dotnet test"];
     private static readonly string[] PythonInstallCommands = ["pip install", "poetry install"];
-    private static readonly string[] GradleInstallCommands = ["gradle build", "./gradlew build"];
+    private static readonly string[] GradleDependencyCachePaths = ["~/.gradle/caches"];
+    private static readonly string[] GradleCommands = ["./gradlew", "gradlew", "gradle"];
+    private static readonly string[] GradleDependencyTasks = ["build", "test"];
 
     public static bool IsAction(WorkflowStep step, string actionName) =>
         step.Uses?.StartsWith(actionName + "@", StringComparison.OrdinalIgnoreCase) == true ||
@@ -24,7 +26,7 @@ internal static class RuleHelpers
         ContainsAny(step.Run, NodeInstallCommands) ||
         ContainsAny(step.Run, DotnetInstallCommands) ||
         ContainsAny(step.Run, PythonInstallCommands) ||
-        ContainsAny(step.Run, GradleInstallCommands));
+        HasGradleBuildOrTest(step));
 
     public static bool HasNodeCache(WorkflowJob job) =>
         job.Steps.Any(step => IsAction(step, "actions/setup-node") && HasWith(step, "cache")) ||
@@ -34,8 +36,30 @@ internal static class RuleHelpers
         HasNodeCache(job) ||
         job.Steps.Any(step => IsAction(step, "actions/cache") && IsKnownDependencyCachePath(GetWith(step, "path")));
 
+    public static bool HasGradleCache(WorkflowJob job) =>
+        HasGradleCache(job.Steps);
+
+    public static bool HasGradleCache(IEnumerable<WorkflowStep> steps) =>
+        steps.Any(step => IsAction(step, "actions/setup-java") &&
+            GetWith(step, "cache")?.Trim().Equals("gradle", StringComparison.OrdinalIgnoreCase) == true) ||
+        steps.Any(step => IsAction(step, "gradle/actions/setup-gradle")) ||
+        steps.Any(step => IsAction(step, "actions/cache") && IsGradleCachePath(GetWith(step, "path")));
+
+    public static bool HasGradleBuildOrTest(WorkflowStep step)
+    {
+        if (string.IsNullOrWhiteSpace(step.Run))
+        {
+            return false;
+        }
+
+        var lines = step.Run.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return lines.Any(ContainsGradleDependencyTask);
+    }
+
     public static bool IsKnownDependencyCachePath(string? path) =>
         ContainsAny(path, ["~/.npm", "~/.cache/yarn", "~/.pnpm-store", "~/.nuget/packages", "~/.cache/pip", "~/.gradle/caches"]);
+
+    public static bool IsGradleCachePath(string? path) => ContainsAny(path, GradleDependencyCachePaths);
 
     public static bool IsNodeCachePath(string? path) =>
         ContainsAny(path, ["~/.npm", "~/.cache/yarn", "~/.pnpm-store"]);
@@ -62,4 +86,56 @@ internal static class RuleHelpers
 
     public static bool ContainsAny(string? value, IEnumerable<string> needles) =>
         value is not null && needles.Any(needle => value.Contains(needle, StringComparison.OrdinalIgnoreCase));
+
+    private static bool ContainsGradleDependencyTask(string line)
+    {
+        foreach (var command in GradleCommands)
+        {
+            var searchIndex = 0;
+            while (searchIndex < line.Length)
+            {
+                var index = line.IndexOf(command, searchIndex, StringComparison.OrdinalIgnoreCase);
+                if (index < 0)
+                {
+                    break;
+                }
+
+                searchIndex = index + command.Length;
+
+                if (!IsCommandBoundary(line, index, command.Length))
+                {
+                    continue;
+                }
+
+                var suffix = line[(index + command.Length)..];
+                var tokens = suffix.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (tokens.Any(IsGradleDependencyTask))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsCommandBoundary(string line, int index, int length)
+    {
+        var prefix = line[..index].TrimEnd();
+        var hasValidPrefix = prefix.Length == 0 ||
+            prefix.EndsWith("&&", StringComparison.Ordinal) ||
+            prefix.EndsWith("||", StringComparison.Ordinal) ||
+            prefix.EndsWith(';') ||
+            prefix.EndsWith('(');
+        var suffixIndex = index + length;
+        var hasValidSuffix = suffixIndex == line.Length || char.IsWhiteSpace(line[suffixIndex]);
+
+        return hasValidPrefix && hasValidSuffix;
+    }
+
+    private static bool IsGradleDependencyTask(string token)
+    {
+        var task = token.Split(':', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? token;
+        return GradleDependencyTasks.Contains(task, StringComparer.OrdinalIgnoreCase);
+    }
 }
