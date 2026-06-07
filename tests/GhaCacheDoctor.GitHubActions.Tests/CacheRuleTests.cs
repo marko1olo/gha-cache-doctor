@@ -280,6 +280,162 @@ public sealed class CacheRuleTests
         Assert.Empty(findings);
     }
 
+    [Fact]
+    public void InstallStepWithoutCacheDoesNotDuplicateGradleSpecificRule()
+    {
+        var workflow = Workflow([
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new InstallStepWithoutCacheRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void GradleCacheMissingReportsGradleBuildWithoutCache()
+    {
+        var workflow = Workflow([
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new GradleCacheMissingRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE006", finding.RuleId);
+        Assert.Equal("test", finding.JobId);
+        Assert.Equal("Build", finding.StepName);
+    }
+
+    [Fact]
+    public void GradleCacheMissingReportsGradleTestCommand()
+    {
+        var workflow = Workflow([
+            new("Test", null, "cd app && gradle --no-daemon test", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new GradleCacheMissingRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE006", finding.RuleId);
+    }
+
+    [Fact]
+    public void GradleCacheMissingReportsQualifiedGradleTask()
+    {
+        var workflow = Workflow([
+            new("Build app", null, "./gradlew --no-daemon :app:build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new GradleCacheMissingRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE006", finding.RuleId);
+    }
+
+    [Fact]
+    public void GradleCacheMissingAllowsSetupJavaGradleCache()
+    {
+        var workflow = Workflow([
+            new("Setup Java", "actions/setup-java@v4", null, new Dictionary<string, string>
+            {
+                ["distribution"] = "temurin",
+                ["java-version"] = "21",
+                ["cache"] = "gradle"
+            }, 6),
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new GradleCacheMissingRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void GradleCacheMissingAllowsSetupGradleAction()
+    {
+        var workflow = Workflow([
+            new("Setup Gradle", "gradle/actions/setup-gradle@v4", null, new Dictionary<string, string>(), 6),
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new GradleCacheMissingRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void GradleCacheMissingAllowsManualGradleCache()
+    {
+        var workflow = Workflow([
+            new("Cache Gradle", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = """
+                    ~/.gradle/caches
+                    ~/.gradle/wrapper
+                    """,
+                ["key"] = "${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}"
+            }, 6),
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new GradleCacheMissingRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void GradleCacheMissingReportsWhenCacheRunsAfterGradle()
+    {
+        var workflow = Workflow([
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12),
+            new("Setup Gradle", "gradle/actions/setup-gradle@v4", null, new Dictionary<string, string>(), 16)
+        ]);
+
+        var finding = Assert.Single(new GradleCacheMissingRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE006", finding.RuleId);
+        Assert.Equal("Build", finding.StepName);
+    }
+
+    [Fact]
+    public void GradleCacheMissingReportsWrapperOnlyManualCache()
+    {
+        var workflow = Workflow([
+            new("Cache Gradle Wrapper", "actions/cache@v4", null, new Dictionary<string, string>
+            {
+                ["path"] = "~/.gradle/wrapper",
+                ["key"] = "${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle-wrapper.properties') }}"
+            }, 6),
+            new("Build", null, "./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var finding = Assert.Single(new GradleCacheMissingRule().Analyze(workflow, Repository()));
+
+        Assert.Equal("GHA-CACHE006", finding.RuleId);
+    }
+
+    [Fact]
+    public void GradleCacheMissingIgnoresEchoedGradleCommand()
+    {
+        var workflow = Workflow([
+            new("Explain", null, "echo ./gradlew build", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new GradleCacheMissingRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void GradleCacheMissingIgnoresOtherGradleTasks()
+    {
+        var workflow = Workflow([
+            new("Show dependencies", null, "./gradlew dependencies", new Dictionary<string, string>(), 12)
+        ]);
+
+        var findings = new GradleCacheMissingRule().Analyze(workflow, Repository());
+
+        Assert.Empty(findings);
+    }
+
     private static WorkflowDocument Workflow(IReadOnlyList<WorkflowStep> steps) =>
         new("ci.yml", "CI", [new WorkflowJob("test", null, steps)]);
 

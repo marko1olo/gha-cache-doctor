@@ -43,6 +43,27 @@ public sealed class ReporterTests
     }
 
     [Fact]
+    public void TextReporterIncludesGradleRuleTitle()
+    {
+        var result = new ScanResult([
+            new Finding(
+                "GHA-CACHE006",
+                Severity.Info,
+                "performance",
+                "Gradle cache missing.",
+                "Add `cache: gradle`.",
+                ".github/workflows/ci.yml",
+                14,
+                "test",
+                "Build")
+        ], []);
+
+        var output = new TextReporter().Render(result);
+
+        Assert.Contains("[info] GHA-CACHE006 gradle-cache-missing", output);
+    }
+
+    [Fact]
     public void TextReporterIncludesParseErrors()
     {
         var result = new ScanResult([], [

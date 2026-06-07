@@ -42,7 +42,7 @@ public sealed class InstallStepWithoutCacheRule : IRule
 
     private static bool IsInstallStep(WorkflowStep step, RepositoryContext repository, bool strictMode)
     {
-        if (RuleHelpers.ContainsAny(step.Run, ["npm ci", "yarn install", "pnpm install", "dotnet restore", "poetry install", "gradle build", "./gradlew build"]))
+        if (RuleHelpers.ContainsAny(step.Run, ["npm ci", "yarn install", "pnpm install", "dotnet restore", "poetry install"]))
         {
             return true;
         }

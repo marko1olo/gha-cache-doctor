@@ -107,6 +107,7 @@ Recommendation: Include a dependency lockfile hash, for example `${{ runner.os }
 | [`GHA-CACHE003`](docs/rules/GHA-CACHE003-actions-cache-key-missing-lockfile-hash.md) | warning | correctness | Reports dependency caches whose keys do not include lockfile hashes. |
 | [`GHA-CACHE004`](docs/rules/GHA-CACHE004-restore-keys-too-broad.md) | info | maintainability | Reports overly broad `restore-keys` that may restore unrelated caches. |
 | [`GHA-CACHE005`](docs/rules/GHA-CACHE005-install-step-without-cache.md) | info | performance | Reports dependency install steps that appear to run without a matching cache. |
+| [`GHA-CACHE006`](docs/rules/GHA-CACHE006-gradle-cache-missing.md) | info | performance | Reports Gradle build or test jobs that run before Gradle dependency caching is configured. |
 
 Want to add the next rule? The rule system is intentionally simple: one small class, focused tests, one docs page, and a README table update. See [Adding a Rule](docs/contributing/adding-a-rule.md).
 
