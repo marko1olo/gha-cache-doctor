@@ -47,6 +47,43 @@ public sealed class CacheRuleTests
     }
 
     [Fact]
+    public void SetupNodeCacheDependencyPathMissingReportsForPnpmWorkspace()
+    {
+        var workflow = Workflow([
+            new("Setup Node", "actions/setup-node@v4", null, new Dictionary<string, string> { ["cache"] = "pnpm" }, 10)
+        ]);
+        var repository = Repository(
+            files: ["pnpm-workspace.yaml", "package.json", "apps/web/package.json", "pnpm-lock.yaml"],
+            lockFiles: ["pnpm-lock.yaml"],
+            packageJsonFiles: ["package.json", "apps/web/package.json"]);
+
+        var finding = Assert.Single(new SetupNodeCacheDependencyPathMissingRule().Analyze(workflow, repository));
+
+        Assert.Equal("GHA-CACHE002", finding.RuleId);
+        Assert.Contains("pnpm-lock.yaml", finding.Recommendation);
+    }
+
+    [Fact]
+    public void SetupNodeCacheDependencyPathMissingAllowsPnpmWorkspaceDependencyPath()
+    {
+        var workflow = Workflow([
+            new("Setup Node", "actions/setup-node@v4", null, new Dictionary<string, string>
+            {
+                ["cache"] = "pnpm",
+                ["cache-dependency-path"] = "pnpm-lock.yaml\napps/*/pnpm-lock.yaml"
+            }, 10)
+        ]);
+        var repository = Repository(
+            files: ["pnpm-workspace.yaml", "package.json", "apps/web/package.json", "pnpm-lock.yaml"],
+            lockFiles: ["pnpm-lock.yaml"],
+            packageJsonFiles: ["package.json", "apps/web/package.json"]);
+
+        var findings = new SetupNodeCacheDependencyPathMissingRule().Analyze(workflow, repository);
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
     public void ActionsCacheKeyMissingLockfileHashReportsDependencyCacheKey()
     {
         var workflow = Workflow([
@@ -246,6 +283,9 @@ public sealed class CacheRuleTests
     private static WorkflowDocument Workflow(IReadOnlyList<WorkflowStep> steps) =>
         new("ci.yml", "CI", [new WorkflowJob("test", null, steps)]);
 
-    private static RepositoryContext Repository(IReadOnlyList<string>? lockFiles = null, IReadOnlyList<string>? packageJsonFiles = null) =>
-        new(".", (lockFiles ?? []).Concat(packageJsonFiles ?? []).ToArray(), lockFiles ?? [], packageJsonFiles ?? [], [], [], []);
+    private static RepositoryContext Repository(
+        IReadOnlyList<string>? files = null,
+        IReadOnlyList<string>? lockFiles = null,
+        IReadOnlyList<string>? packageJsonFiles = null) =>
+        new(".", files ?? (lockFiles ?? []).Concat(packageJsonFiles ?? []).ToArray(), lockFiles ?? [], packageJsonFiles ?? [], [], [], []);
 }

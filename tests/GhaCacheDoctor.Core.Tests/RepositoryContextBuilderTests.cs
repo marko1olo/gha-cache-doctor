@@ -77,6 +77,20 @@ public sealed class RepositoryContextBuilderTests
 
         Assert.True(context.LooksLikeNodeMonorepo);
     }
+
+    [Fact]
+    public void BuildDetectsPnpmWorkspaceMonorepoHints()
+    {
+        using var directory = new TempDirectory();
+        directory.Write("pnpm-workspace.yaml", "packages:\n  - apps/*\n");
+        directory.Write("pnpm-lock.yaml", string.Empty);
+        directory.Write("package.json", "{}");
+
+        var context = new RepositoryContextBuilder().Build(directory.Path);
+
+        Assert.Contains("pnpm-workspace.yaml", context.PnpmWorkspaceFiles);
+        Assert.True(context.LooksLikeNodeMonorepo);
+    }
 }
 
 internal sealed class TempDirectory : IDisposable
