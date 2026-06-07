@@ -24,12 +24,13 @@ public sealed class SetupNodeCacheDependencyPathMissingRule : IRule
                 RuleHelpers.HasWith(step, "cache") &&
                 !RuleHelpers.HasWith(step, "cache-dependency-path")))
             {
+                var recommendation = GetRecommendation(repository, job, step);
                 findings.Add(new Finding(
                     Id,
                     DefaultSeverity,
                     Category,
                     "This repository looks like a monorepo, but setup-node cache has no cache-dependency-path.",
-                    "Set `cache-dependency-path` to the lockfile used by this job, for example `apps/web/package-lock.json`.",
+                    recommendation,
                     workflow.FilePath,
                     step.Line,
                     job.Id,
@@ -38,5 +39,18 @@ public sealed class SetupNodeCacheDependencyPathMissingRule : IRule
         }
 
         return findings;
+    }
+
+    private static string GetRecommendation(RepositoryContext repository, WorkflowJob job, WorkflowStep step)
+    {
+        var cacheKind = RuleHelpers.GetWith(step, "cache");
+        if (cacheKind?.Equals("pnpm", StringComparison.OrdinalIgnoreCase) == true ||
+            repository.PnpmWorkspaceFiles.Count > 0 ||
+            RuleHelpers.DetectNodeCacheKind(repository, job).Equals("pnpm", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Set `cache-dependency-path` to the pnpm workspace lockfiles, for example `pnpm-lock.yaml` or a multi-line value that includes nested workspace lockfiles.";
+        }
+
+        return "Set `cache-dependency-path` to the lockfile used by this job, for example `apps/web/package-lock.json`.";
     }
 }

@@ -13,5 +13,6 @@ public sealed record ScanOptions(
 public enum OutputFormat
 {
     Text,
-    Json
+    Json,
+    GitHubSummary
 }

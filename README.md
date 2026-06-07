@@ -21,6 +21,12 @@ JSON output:
 dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --format json --fail-on none
 ```
 
+GitHub job summary output:
+
+```bash
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --format github-summary --fail-on none >> "$GITHUB_STEP_SUMMARY"
+```
+
 ## Why It Exists
 
 GitHub Actions caching looks simple, but cache configuration is easy to get wrong. A workflow can install dependencies on every run, use a cache key that never invalidates correctly, or miss monorepo lockfiles entirely.
@@ -115,7 +121,8 @@ gha-cache-doctor scan [options]
 Options:
   --repo <path>             Repository root. Defaults to current directory.
   --path <path>             Workflow file or directory. Defaults to .github/workflows.
-  --format <text|json>      Output format. Defaults to text.
+  --format <text|json|github-summary>
+                            Output format. Defaults to text.
   --fail-on <none|info|warning|error>
   --include <ids>           Comma-separated rule IDs to include.
   --exclude <ids>           Comma-separated rule IDs to exclude.
@@ -176,6 +183,17 @@ The JSON schema is intentionally simple and stable for CI consumption:
   "parseErrors": []
 }
 ```
+
+## GitHub Summary Output
+
+Use `--format github-summary` in GitHub Actions to write a concise Markdown report to `$GITHUB_STEP_SUMMARY`.
+
+```yaml
+- name: Check GitHub Actions cache configuration
+  run: gha-cache-doctor scan --format github-summary --fail-on warning >> "$GITHUB_STEP_SUMMARY"
+```
+
+The summary includes counts by severity, a findings table, and workflow parse errors when present.
 
 ## GitHub Actions Usage
 

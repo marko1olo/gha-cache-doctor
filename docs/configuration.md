@@ -25,7 +25,7 @@ severity:
 | Field | Description |
 | --- | --- |
 | `path` or `workflowPath` | Workflow file or directory to scan. |
-| `format` | `text` or `json`. |
+| `format` | `text`, `json`, or `github-summary`. |
 | `failOn` or `fail-on` | `none`, `info`, `warning`, or `error`. |
 | `strict` | `true` or `false`. |
 | `include` | Rule IDs to run. May be a YAML list or comma-separated string. |
