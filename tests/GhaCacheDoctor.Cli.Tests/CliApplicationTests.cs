@@ -53,6 +53,30 @@ public sealed class CliApplicationTests
     }
 
     [Fact]
+    public void ScanSupportsGitHubSummaryOutput()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+        var output = new StringWriter();
+
+        var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path, "--format", "github-summary"]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("# gha-cache-doctor summary", output.ToString());
+        Assert.Contains("GHA-CACHE003", output.ToString());
+    }
+
+    [Fact]
     public void ScanReturnsOneWhenFailOnWarningMatchesWarningFinding()
     {
         using var directory = new TempDirectory();
@@ -171,6 +195,35 @@ public sealed class CliApplicationTests
 
         Assert.Equal(0, exitCode);
         Assert.Equal("No cache issues found." + Environment.NewLine, output.ToString());
+    }
+
+    [Fact]
+    public void ScanLoadsGitHubSummaryFormatFromConfigFile()
+    {
+        using var directory = new TempDirectory();
+        directory.Write(
+            ".gha-cache-doctor.yml",
+            """
+            format: github-summary
+            """);
+        directory.Write(
+            ".github/workflows/ci.yml",
+            """
+            jobs:
+              test:
+                steps:
+                  - uses: actions/cache@v4
+                    with:
+                      path: ~/.npm
+                      key: npm-cache
+            """);
+        var output = new StringWriter();
+
+        var exitCode = new CliApplication(output, new StringWriter()).Run(["scan", "--repo", directory.Path]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("# gha-cache-doctor summary", output.ToString());
+        Assert.Contains("GHA-CACHE003", output.ToString());
     }
 
     [Fact]
