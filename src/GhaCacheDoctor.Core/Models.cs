@@ -70,7 +70,11 @@ public sealed record RepositoryContext(
 
     public bool HasNodeHints => PackageJsonFiles.Count > 0 || LockFiles.Any(IsNodeLockFile);
 
+    public IReadOnlyList<string> PnpmWorkspaceFiles =>
+        Files.Where(IsPnpmWorkspaceFile).ToArray();
+
     public bool LooksLikeNodeMonorepo =>
+        PnpmWorkspaceFiles.Count > 0 ||
         PackageJsonFiles.Count > 1 ||
         LockFiles.Count(IsNodeLockFile) > 1 ||
         LockFiles.Any(path => IsNodeLockFile(path) && !IsRootPath(path)) ||
@@ -85,6 +89,9 @@ public sealed record RepositoryContext(
             fileName.Equals("yarn.lock", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("pnpm-lock.yaml", StringComparison.OrdinalIgnoreCase);
     }
+
+    public static bool IsPnpmWorkspaceFile(string path) =>
+        Path.GetFileName(path).Equals("pnpm-workspace.yaml", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsRootPath(string path) => !path.Contains('/', StringComparison.Ordinal);
 }

@@ -67,6 +67,8 @@ public sealed class TextReporter : IReporter
         "GHA-CACHE003" => "actions-cache-key-missing-lockfile-hash",
         "GHA-CACHE004" => "restore-keys-too-broad",
         "GHA-CACHE005" => "install-step-without-cache",
+        "GHA-CACHE006" => "gradle-cache-missing",
+        "GHA-CACHE007" => "setup-python-pip-cache-missing",
         _ => "cache-rule"
     };
 }

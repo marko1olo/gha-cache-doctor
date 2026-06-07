@@ -10,7 +10,7 @@ Dependency installs are often among the slowest parts of CI. A nearby cache can 
 
 ## How to fix
 
-Use the package-manager-specific cache mechanism for the job, such as setup-node `cache` or `actions/cache` for NuGet, pip, or Gradle cache directories.
+Use the package-manager-specific cache mechanism for the job, such as setup-node `cache` or `actions/cache` for NuGet and pip cache directories.
 
 See the [Cache Key Cookbook](../cache-key-cookbook.md) for package-manager-specific cache examples.
 
@@ -38,6 +38,8 @@ info
 ## Strict mode
 
 Strict mode also reports likely dependency install commands such as `npm install`, `pnpm i`, `dotnet build`, `dotnet test`, and `pip install` when repository context suggests the related ecosystem is present.
+
+Gradle build and test detection is handled by [`GHA-CACHE006`](GHA-CACHE006-gradle-cache-missing.md).
 
 ## False positive notes
 

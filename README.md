@@ -21,6 +21,12 @@ JSON output:
 dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --format json --fail-on none
 ```
 
+GitHub job summary output:
+
+```bash
+dotnet run --project src/GhaCacheDoctor.Cli -- scan --path samples/github-actions/bad --format github-summary --fail-on none >> "$GITHUB_STEP_SUMMARY"
+```
+
 ## Why It Exists
 
 GitHub Actions caching looks simple, but cache configuration is easy to get wrong. A workflow can install dependencies on every run, use a cache key that never invalidates correctly, or miss monorepo lockfiles entirely.
@@ -101,7 +107,8 @@ Recommendation: Include a dependency lockfile hash, for example `${{ runner.os }
 | [`GHA-CACHE003`](docs/rules/GHA-CACHE003-actions-cache-key-missing-lockfile-hash.md) | warning | correctness | Reports dependency caches whose keys do not include lockfile hashes. |
 | [`GHA-CACHE004`](docs/rules/GHA-CACHE004-restore-keys-too-broad.md) | info | maintainability | Reports overly broad `restore-keys` that may restore unrelated caches. |
 | [`GHA-CACHE005`](docs/rules/GHA-CACHE005-install-step-without-cache.md) | info | performance | Reports dependency install steps that appear to run without a matching cache. |
-| [`GHA-CACHE006`](docs/rules/GHA-CACHE006-setup-python-pip-cache-missing.md) | info | performance | Reports `actions/setup-python` usage without pip dependency caching when Python installs are present. |
+| [`GHA-CACHE006`](docs/rules/GHA-CACHE006-gradle-cache-missing.md) | info | performance | Reports Gradle build or test jobs that run before Gradle dependency caching is configured. |
+| [`GHA-CACHE007`](docs/rules/GHA-CACHE007-setup-python-pip-cache-missing.md) | info | performance | Reports `actions/setup-python` usage without pip dependency caching when Python installs are present. |
 
 Want to add the next rule? The rule system is intentionally simple: one small class, focused tests, one docs page, and a README table update. See [Adding a Rule](docs/contributing/adding-a-rule.md).
 
@@ -115,7 +122,8 @@ gha-cache-doctor scan [options]
 Options:
   --repo <path>             Repository root. Defaults to current directory.
   --path <path>             Workflow file or directory. Defaults to .github/workflows.
-  --format <text|json>      Output format. Defaults to text.
+  --format <text|json|github-summary>
+                            Output format. Defaults to text.
   --fail-on <none|info|warning|error>
   --include <ids>           Comma-separated rule IDs to include.
   --exclude <ids>           Comma-separated rule IDs to exclude.
@@ -176,6 +184,17 @@ The JSON schema is intentionally simple and stable for CI consumption:
   "parseErrors": []
 }
 ```
+
+## GitHub Summary Output
+
+Use `--format github-summary` in GitHub Actions to write a concise Markdown report to `$GITHUB_STEP_SUMMARY`.
+
+```yaml
+- name: Check GitHub Actions cache configuration
+  run: gha-cache-doctor scan --format github-summary --fail-on warning >> "$GITHUB_STEP_SUMMARY"
+```
+
+The summary includes counts by severity, a findings table, and workflow parse errors when present.
 
 ## GitHub Actions Usage
 

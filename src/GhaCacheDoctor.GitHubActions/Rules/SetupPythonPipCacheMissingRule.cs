@@ -4,7 +4,7 @@ namespace GhaCacheDoctor.GitHubActions.Rules;
 
 public sealed class SetupPythonPipCacheMissingRule : IRule
 {
-    public string Id => "GHA-CACHE006";
+    public string Id => "GHA-CACHE007";
     public string Title => "setup-python-pip-cache-missing";
     public Severity DefaultSeverity => Severity.Info;
     public string Category => "performance";

@@ -43,6 +43,48 @@ public sealed class ReporterTests
     }
 
     [Fact]
+    public void TextReporterIncludesGradleRuleTitle()
+    {
+        var result = new ScanResult([
+            new Finding(
+                "GHA-CACHE006",
+                Severity.Info,
+                "performance",
+                "Gradle cache missing.",
+                "Add `cache: gradle`.",
+                ".github/workflows/ci.yml",
+                14,
+                "test",
+                "Build")
+        ], []);
+
+        var output = new TextReporter().Render(result);
+
+        Assert.Contains("[info] GHA-CACHE006 gradle-cache-missing", output);
+    }
+
+    [Fact]
+    public void TextReporterIncludesSetupPythonPipRuleTitle()
+    {
+        var result = new ScanResult([
+            new Finding(
+                "GHA-CACHE007",
+                Severity.Info,
+                "performance",
+                "setup-python pip cache missing.",
+                "Add `cache: pip`.",
+                ".github/workflows/ci.yml",
+                14,
+                "test",
+                "Setup Python")
+        ], []);
+
+        var output = new TextReporter().Render(result);
+
+        Assert.Contains("[info] GHA-CACHE007 setup-python-pip-cache-missing", output);
+    }
+
+    [Fact]
     public void TextReporterIncludesParseErrors()
     {
         var result = new ScanResult([], [
@@ -85,5 +127,43 @@ public sealed class ReporterTests
         Assert.Equal("Use hashFiles.", finding.GetProperty("recommendation").GetString());
         Assert.Equal("Cache npm", finding.GetProperty("stepName").GetString());
         Assert.True(document.RootElement.TryGetProperty("parseErrors", out _));
+    }
+
+    [Fact]
+    public void GitHubSummaryReporterReturnsMarkdownForEmptyResult()
+    {
+        var result = new ScanResult([], []);
+
+        var output = new GitHubSummaryReporter().Render(result);
+
+        Assert.Contains("# gha-cache-doctor summary", output);
+        Assert.Contains("| Parse errors | 0 |", output);
+        Assert.Contains("No cache issues found.", output);
+    }
+
+    [Fact]
+    public void GitHubSummaryReporterIncludesFindingTableAndEscapesCells()
+    {
+        var result = new ScanResult([
+            new Finding(
+                "GHA-CACHE003",
+                Severity.Warning,
+                "correctness",
+                "Weak cache key | missing lockfile.",
+                "Use hashFiles.\nKeep restore keys scoped.",
+                ".github/workflows/ci.yml",
+                8,
+                "test",
+                "Cache npm")
+        ], [
+            new WorkflowParseError(".github/workflows/bad.yml", 3, "Invalid | YAML")
+        ]);
+
+        var output = new GitHubSummaryReporter().Render(result);
+
+        Assert.Contains("| Warnings | 1 |", output);
+        Assert.Contains("| Warning | GHA-CACHE003 | .github/workflows/ci.yml:8 | test | Cache npm | Weak cache key \\| missing lockfile. | Use hashFiles.<br>Keep restore keys scoped. |", output);
+        Assert.Contains("## Parse errors", output);
+        Assert.Contains("| .github/workflows/bad.yml:3 | Invalid \\| YAML |", output);
     }
 }
